@@ -1,7 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import BookCard from "../components/BookCard";
+import ProgressModal from "../components/ProgressModal";
 
-const Profile = ({ myLibrary }) => {
+const Profile = ({ myLibrary, onUpdateProgress }) => {
+  const [progressModalBook, setProgressModalBook] = useState(null);
+
   // Basic User Info
   const user = {
     name: "Τάσος",
@@ -11,11 +14,29 @@ const Profile = ({ myLibrary }) => {
 
   // Derived Stats from Real Library Data
   const totalBooks = myLibrary.length;
-  // Find a book marked as 'reading', or fall back to the last added book if any exists
   const readingNow = myLibrary.find((b) => b.status === "reading") || null;
-
-  // Get the last 3 books added to display as recent
   const recentBooks = [...myLibrary].reverse().slice(0, 3);
+
+  // Calculate progress percentage
+  const getProgress = (book) => {
+    if (!book.currentPage || !book.totalPages) return 0;
+    return Math.round((book.currentPage / book.totalPages) * 100);
+  };
+
+  // Calculate reading stats
+  const getReadingStats = (book) => {
+    if (!book.currentPage || !book.totalPages) {
+      return {
+        pagesLeft: book.totalPages || 0,
+        progressText: "Δεν έχει οριστεί πρόοδος",
+      };
+    }
+
+    const pagesLeft = book.totalPages - book.currentPage;
+    const progressText = `Σελίδα ${book.currentPage} από ${book.totalPages} (${getProgress(book)}%)`;
+
+    return { pagesLeft, progressText };
+  };
 
   return (
     <main className="container profile-page">
@@ -42,7 +63,6 @@ const Profile = ({ myLibrary }) => {
             <span className="stat-number">{totalBooks}</span>
             <span className="stat-label">Βιβλία</span>
           </div>
-          {/* Placeholder stats for now until we implement Friends/Lists features */}
           <div className="stat-item">
             <span className="stat-number">128</span>
             <span className="stat-label">Φίλοι</span>
@@ -71,11 +91,25 @@ const Profile = ({ myLibrary }) => {
               <p className="author">{readingNow.author}</p>
               <div className="progress-container">
                 <div className="progress-bar">
-                  <div className="progress-fill" style={{ width: "45%" }}></div>
+                  <div
+                    className="progress-fill"
+                    style={{
+                      width: `${getProgress(readingNow)}%`,
+                      background: "linear-gradient(90deg, #8b5cf6, #a78bfa)",
+                    }}
+                  ></div>
                 </div>
-                <span className="progress-text">Σελιδα 120 (45%)</span>
+                <span className="progress-text">
+                  {getReadingStats(readingNow).progressText}
+                </span>
               </div>
-              <button className="btn-text">Ενημέρωση προόδου</button>
+              <button
+                className="btn-text"
+                onClick={() => setProgressModalBook(readingNow)}
+                style={{ cursor: "pointer" }}
+              >
+                Ενημέρωση προόδου
+              </button>
             </div>
           </div>
         </section>
@@ -109,7 +143,7 @@ const Profile = ({ myLibrary }) => {
                 key={book.id}
                 book={book}
                 isLibraryView={true}
-                onClick={() => {}} // Simple view, no modal needed for now
+                onClick={() => {}}
               />
             ))
           ) : (
@@ -117,6 +151,14 @@ const Profile = ({ myLibrary }) => {
           )}
         </div>
       </section>
+
+      {/* Progress Update Modal */}
+      <ProgressModal
+        book={progressModalBook}
+        isOpen={!!progressModalBook}
+        onClose={() => setProgressModalBook(null)}
+        onUpdate={onUpdateProgress}
+      />
     </main>
   );
 };

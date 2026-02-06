@@ -44,6 +44,7 @@ export const fetchBooks = async (query = "harry potter", maxResults = 20) => {
         description: item.first_sentence
           ? item.first_sentence[0]
           : "Δεν υπάρχει διαθέσιμη σύντομη περιγραφή. Κάντε κλικ για περισσότερα.",
+        pageCount: item.number_of_pages_median || null, // Get page count from API
         userReviews: [],
       };
     });

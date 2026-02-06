@@ -56,6 +56,25 @@ function App() {
     }
   };
 
+  // Function to update reading progress
+  const updateBookProgress = (bookId, progressData) => {
+    setMyLibrary((prevLibrary) =>
+      prevLibrary.map((book) =>
+        book.id === bookId
+          ? {
+              ...book,
+              currentPage: progressData.currentPage,
+              totalPages: progressData.totalPages,
+              startedDate:
+                progressData.startedDate ||
+                book.startedDate ||
+                new Date().toISOString(),
+            }
+          : book,
+      ),
+    );
+  };
+
   return (
     <Router>
       <div className="app">
@@ -69,10 +88,19 @@ function App() {
                 myLibrary={myLibrary}
                 onUpdateStatus={updateBookStatus}
                 onRemove={removeFromLibrary}
+                onUpdateProgress={updateBookProgress}
               />
             }
           />
-          <Route path="/profile" element={<Profile myLibrary={myLibrary} />} />
+          <Route
+            path="/profile"
+            element={
+              <Profile
+                myLibrary={myLibrary}
+                onUpdateProgress={updateBookProgress}
+              />
+            }
+          />
         </Routes>
 
         <footer className="footer">

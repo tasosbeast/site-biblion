@@ -1,22 +1,20 @@
 import React, { useState } from "react";
 import BookCard from "../components/BookCard";
 import Modal from "../components/Modal";
+import ProgressModal from "../components/ProgressModal";
 
-const Library = ({ myLibrary, onUpdateStatus, onRemove }) => {
+const Library = ({ myLibrary, onUpdateStatus, onRemove, onUpdateProgress }) => {
   const [filter, setFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedBook, setSelectedBook] = useState(null);
+  const [progressModalBook, setProgressModalBook] = useState(null);
 
   // Filter books based on active tab and search query
   const filteredBooks = myLibrary.filter((book) => {
-    // Filter by status (Want to Read, Reading, Read)
     const matchesFilter = filter === "all" || book.status === filter;
-
-    // Filter by text search
     const matchesSearch =
       book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       book.author.toLowerCase().includes(searchQuery.toLowerCase());
-
     return matchesFilter && matchesSearch;
   });
 
@@ -73,14 +71,42 @@ const Library = ({ myLibrary, onUpdateStatus, onRemove }) => {
             </div>
           ) : filteredBooks.length > 0 ? (
             filteredBooks.map((book) => (
-              <BookCard
-                key={book.id}
-                book={book}
-                isLibraryView={true}
-                onUpdateStatus={onUpdateStatus}
-                onRemove={onRemove}
-                onClick={() => setSelectedBook(book)}
-              />
+              <div key={book.id} style={{ position: "relative" }}>
+                <BookCard
+                  book={book}
+                  isLibraryView={true}
+                  onUpdateStatus={onUpdateStatus}
+                  onRemove={onRemove}
+                  onClick={() => setSelectedBook(book)}
+                />
+                {/* Show progress button for "reading" books */}
+                {book.status === "reading" && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setProgressModalBook(book);
+                    }}
+                    style={{
+                      position: "absolute",
+                      bottom: "10px",
+                      left: "50%",
+                      transform: "translateX(-50%)",
+                      padding: "6px 12px",
+                      background: "linear-gradient(135deg, #8b5cf6, #a78bfa)",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "6px",
+                      fontSize: "0.75rem",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      zIndex: 10,
+                      boxShadow: "0 2px 8px rgba(139, 92, 246, 0.3)",
+                    }}
+                  >
+                    📊 Πρόοδος
+                  </button>
+                )}
+              </div>
             ))
           ) : (
             <p
@@ -96,6 +122,13 @@ const Library = ({ myLibrary, onUpdateStatus, onRemove }) => {
         book={selectedBook}
         isOpen={!!selectedBook}
         onClose={() => setSelectedBook(null)}
+      />
+
+      <ProgressModal
+        book={progressModalBook}
+        isOpen={!!progressModalBook}
+        onClose={() => setProgressModalBook(null)}
+        onUpdate={onUpdateProgress}
       />
     </main>
   );
